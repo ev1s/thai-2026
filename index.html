@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Таиланд, 5–17 октября 2026 · Бангкок → Пхукет</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+  :root{
+    --sea:#0F7C86; --sea-deep:#0B5C64; --ink:#18232E; --ink-soft:#4D5A66;
+    --line:#D9E0E2; --bg:#F5F8F7; --panel:#FFFFFF;
+    --bkk-hotel:#3D4E9B; --bkk-sight:#B83A6C; --hkt-hotel:#0F7C86; --hkt-fun:#D6801F;
+    --sand:#F2E3B8;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  body{margin:0;font-family:Rubik,"Segoe UI",system-ui,sans-serif;color:var(--ink);background:var(--bg);line-height:1.5;font-size:16px}
+  a{color:var(--sea-deep)}
+  h1,h2,h3{margin:0;font-weight:700;letter-spacing:-.01em}
+  h1{font-size:clamp(28px,4vw,44px);line-height:1.1}
+  h2{font-size:26px;line-height:1.2}
+  h3{font-size:17px;font-weight:500}
+  p{margin:0 0 .6em}
+  .wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+
+  /* header */
+  header{background:var(--ink);color:#fff;padding:44px 0 36px}
+  header .route{font-size:15px;color:#B8C4CC;margin-bottom:12px}
+  header h1 span{color:var(--sand)}
+  .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:28px}
+  .fact{border-left:3px solid var(--sand);padding:2px 0 2px 14px;font-size:15px;color:#DCE4E9}
+  .fact b{display:block;color:#fff;font-weight:500;margin-bottom:2px}
+
+  /* nav */
+  nav{position:sticky;top:0;z-index:1200;background:var(--panel);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;gap:4px;overflow-x:auto;padding-top:6px;padding-bottom:6px}
+  nav a{white-space:nowrap;text-decoration:none;color:var(--ink-soft);padding:8px 12px;border-radius:6px;font-size:14px}
+  nav a:hover,nav a:focus-visible{background:var(--bg);color:var(--ink)}
+  nav a .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px;vertical-align:1px}
+
+  /* sections */
+  section.block{padding:52px 0 8px}
+  .block-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:8px}
+  .block-head .count{color:var(--ink-soft);font-size:15px}
+  .lead{max-width:72ch;color:var(--ink-soft);margin-bottom:22px}
+  .layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:24px;align-items:start}
+  @media (max-width:900px){.layout{grid-template-columns:1fr}.mapbox{position:static!important;height:380px!important}}
+  .mapbox{position:sticky;top:64px;height:calc(100vh - 90px);min-height:420px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#E6EEF0}
+  .map{width:100%;height:100%}
+
+  /* place list */
+  .group{margin-bottom:26px}
+  .group h3{color:var(--ink-soft);font-size:14px;font-weight:500;padding-bottom:6px;border-bottom:1px solid var(--line);margin-bottom:6px}
+  .place{display:grid;grid-template-columns:34px 1fr;gap:12px;padding:10px 8px;border-radius:8px;cursor:pointer;border:1px solid transparent}
+  .place:hover,.place:focus-visible,.place.active{background:var(--panel);border-color:var(--line)}
+  .place:focus-visible{outline:2px solid var(--sea)}
+  .num{width:28px;height:28px;border-radius:50%;color:#fff;display:grid;place-items:center;font-size:13px;font-weight:500;margin-top:2px}
+  .place .name{font-weight:500}
+  .place .meta{font-size:14px;color:var(--ink-soft)}
+  .place .price{font-size:14px;color:var(--ink);margin-top:2px}
+  .place .gm{font-size:13px;display:inline-block}
+  .links{margin-top:4px;font-size:13px}
+  .sep{color:var(--line);margin:0 6px}
+  .place{grid-template-columns:34px 84px 1fr}
+  .thumb{width:84px;height:64px;border-radius:6px;background:var(--line);overflow:hidden;position:relative}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s}
+  .thumb img.ok{opacity:1}
+  .thumb.none::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(135deg,transparent 0 6px,rgba(0,0,0,.05) 6px 12px)}
+  .place:has(.thumb.none){grid-template-columns:34px 0 1fr}
+  .place:has(.thumb.none) .thumb{width:0}
+  @media (max-width:520px){.place{grid-template-columns:30px 64px 1fr}.thumb{width:64px;height:52px}}
+  .popimg{width:240px;height:130px;object-fit:cover;border-radius:6px;display:block;margin-bottom:8px}
+
+  /* leaflet marker */
+  .pin{width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);display:grid;place-items:center}
+  .pin span{transform:rotate(45deg);color:#fff;font-size:12px;font-weight:700;font-family:Rubik,sans-serif}
+  .leaflet-popup-content{font-family:Rubik,sans-serif;font-size:14px;line-height:1.45;margin:12px 14px}
+  .leaflet-popup-content b{font-weight:500}
+  .leaflet-popup-content .gm{display:inline-block;margin-top:6px}
+  .basemap{position:absolute;z-index:800;right:10px;top:10px;background:#fff;border-radius:6px;box-shadow:0 1px 5px rgba(0,0,0,.3);font-size:13px;overflow:hidden;display:flex}
+  .basemap button{border:0;background:#fff;padding:6px 10px;cursor:pointer;font:inherit;color:var(--ink-soft)}
+  .basemap button.on{background:var(--ink);color:#fff}
+
+  /* plans */
+  .plans{padding:56px 0 64px}
+  .plans .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:28px;margin-top:18px}
+  ol.days{padding-left:0;list-style:none;margin:0}
+  ol.days li{display:grid;grid-template-columns:70px 1fr;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:15px}
+  ol.days li b{font-weight:500;color:var(--sea-deep)}
+  .note{background:var(--sand);border-radius:8px;padding:14px 16px;font-size:14px;margin-top:22px;max-width:72ch}
+  footer{color:var(--ink-soft);font-size:13px;padding:24px 0 40px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="route">Москва → Бангкок (2–3 ночи) → Пхукет, Карон (8–9 ночей) → Москва · 12 дней · 2 человека</div>
+    <h1>Таиланд, <span>5–17 октября 2026</span></h1>
+    <div class="facts">
+      <div class="fact"><b>Виза</b>Безвиз до 30 дней (с 15.09.2026). Обязательна электронная карта TDAC — подать за 24–72 ч до прилёта на tdac.immigration.go.th</div>
+      <div class="fact"><b>Перелёт</b>Аэрофлот SU278 Москва→Бангкок (~8 ч 50 мин), внутренний Бангкок→Пхукет (~1 ч 20 мин), обратно прямой SU275 Пхукет→Москва (~10 ч 20 мин)</div>
+      <div class="fact"><b>Погода</b>Октябрь — самый влажный месяц на Пхукете (+30…32 °C, вода +28 °C). Морские экскурсии лучше ставить на вторую неделю, Симиланы открываются 15 октября</div>
+      <div class="fact"><b>Бюджет на двоих</b>Бюджетный ~180–260 тыс. ₽ · средний ~300–450 тыс. ₽ · премиум 550–900 тыс. ₽+. Готовая программа Бангкок+Пхукет есть у ITM group (от ~95 тыс. ₽/чел с перелётом)</div>
+    </div>
+  </div>
+</header>
+
+<nav aria-label="Разделы">
+  <div class="wrap">
+    <a href="#bkk-hotels"><span class="dot" style="background:var(--bkk-hotel)"></span>Отели Бангкока</a>
+    <a href="#bkk-sights"><span class="dot" style="background:var(--bkk-sight)"></span>Бангкок: что смотреть</a>
+    <a href="#hkt-hotels"><span class="dot" style="background:var(--hkt-hotel)"></span>Отели Пхукета</a>
+    <a href="#hkt-fun"><span class="dot" style="background:var(--hkt-fun)"></span>Пхукет: развлечения</a>
+    <a href="#plans">План по дням</a>
+  </div>
+</nav>
+
+<main id="app"></main>
+
+<section class="plans" id="plans">
+  <div class="wrap">
+    <h2>План по дням</h2>
+    <div class="cols">
+      <div>
+        <h3>Бангкок · 3 дня</h3>
+        <ol class="days">
+          <li><b>День 1</b><span>Прилёт, заселение (Риверсайд/Силом или Асок). Вечер — руфтоп Vertigo или Octave, либо рынок Jodd Fairs.</span></li>
+          <li><b>День 2</b><span>К 8:30 — Большой дворец, затем Ват Пхо, паром на Ват Арун. Обед у реки. Вечер — ICONSIAM и закат на Чао Прайе.</span></li>
+          <li><b>День 3</b><span>Ват Сакет и Чайнатаун — или целый день в Siam Amazing Park, если аттракционы в приоритете. Днём перелёт на Пхукет.</span></li>
+        </ol>
+      </div>
+      <div>
+        <h3>Пхукет · 9 ночей, база Карон</h3>
+        <ol class="days">
+          <li><b>День 1</b><span>Заселение, пляж Карон, закат на Karon Viewpoint.</span></li>
+          <li><b>День 2</b><span>Аренда байка: Nai Harn, Ya Nui, закат на мысе Промтеп.</span></li>
+          <li><b>День 3</b><span>Экскурсия: залив Пханг-Нга и остров Джеймса Бонда.</span></li>
+          <li><b>День 4</b><span>Дайвинг/снорклинг на Раче — или спа и бассейн, если дождь.</span></li>
+          <li><b>День 5</b><span>На байке: Wat Chalong → Большой Будда → Старый город Пхукета.</span></li>
+          <li><b>День 6</b><span>Экскурсия на Пхи-Пхи.</span></li>
+          <li><b>День 7</b><span>Аквапарк Andamanda или слоновий заповедник; вечером шоу FantaSea / Carnival Magic.</span></li>
+          <li><b>День 8</b><span>Пляжный клуб в Камале/Сурине, северные пляжи на байке.</span></li>
+          <li><b>День 9</b><span>Симиланы (если открыты с 15 октября) — иначе серфинг на Кате. Сборы.</span></li>
+          <li><b>День 10</b><span>Вылет в Москву.</span></li>
+        </ol>
+      </div>
+    </div>
+    <div class="note">Цены собраны в сентябре 2026 и ориентировочны (1 $ ≈ 90 ₽, 1 бат ≈ 2,6 ₽). Перепроверяйте перед бронированием. Для байка нужны права категории A и международное удостоверение — без них страховка при ДТП не работает.</div>
+  </div>
+</section>
+
+<footer><div class="wrap">Карты: Leaflet · подложки Google Maps / OpenStreetMap. Ссылки Booking.com открывают отель с датами 5–8 октября (Бангкок) и 8–17 октября (Пхукет) на двоих; Tripadvisor — рейтинг и отзывы заведения; Google Maps — точка с маршрутом.</div></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const BLOCKS = [
+{
+  id:'bkk-hotels', title:'Отели Бангкока', color:'var(--bkk-hotel)', hex:'#3D4E9B',
+  lead:'Главный критерий — локация. Для первого визита удобнее Риверсайд/Силом (рядом храмы и речной трамвай) или Сукхумвит у станции Асок (узел BTS/MRT, рестораны, руфтопы). Цены за ночь на двоих, октябрь 2026.',
+  groups:[
+   {name:'Премиум', items:[
+    {n:'Sofitel Bangkok Sukhumvit', lat:13.7385, lng:100.5580, meta:'Сукхумвит, BTS Nana/Asok · флагман, рейтинг 9.1, у Terminal 21. Минус — шумный район', price:'~13 100–20 500 ₽'},
+    {n:'Centara Grand at CentralWorld', lat:13.7470, lng:100.5400, meta:'Сиам/Пратунам, BTS Chit Lom · лучший шопинг, руфтоп, высокий бассейн. Большой конгресс-отель', price:'~7 800–13 900 ₽'},
+    {n:'lebua at State Tower', lat:13.7218, lng:100.5162, meta:'Силом/Риверсайд, BTS Saphan Taksin · Sky Bar и Sirocco в отеле, вид на реку. Здание старое, много туристов', price:'~10 400–17 700 ₽'},
+    {n:'Shangri-La Bangkok', lat:13.7205, lng:100.5148, meta:'Риверсайд, прямой выход к BTS Saphan Taksin · набережная, бассейны, CHI-спа', price:'~14 100–16 650 ₽'},
+    {n:'Millennium Hilton Bangkok', lat:13.7246, lng:100.5083, meta:'Западный берег, у ICONSIAM · лучшие инфинити-бассейны с видом на реку. Зависимость от шаттл-катера', price:'~7 500–14 900 ₽'},
+   ]},
+   {name:'Средний', items:[
+    {n:'Eastin Grand Hotel Sathorn', lat:13.7195, lng:100.5215, meta:'Силом/Сатхорн · крытый переход прямо к BTS Surasak, бассейн, лучшее value среди 5*. Вечером тихо', price:'~5 760–10 800 ₽'},
+    {n:'Novotel Bangkok Sukhumvit 20', lat:13.7335, lng:100.5605, meta:'Сукхумвит · современный, руфтоп, у Terminal 21. До BTS Asok 5–10 мин пешком', price:'~5 940–9 720 ₽'},
+   ]},
+   {name:'Бюджет', items:[
+    {n:'Citichic Sukhumvit 13', lat:13.7420, lng:100.5555, meta:'Сукхумвит, BTS Nana/Asok · центрально и дёшево, маленькие номера', price:'~4 950 ₽'},
+    {n:'ibis Styles Bangkok Silom', lat:13.7220, lng:100.5250, meta:'Силом, BTS Chong Nonsi/Surasak · надёжный бренд, компактные номера', price:'~5 760 ₽'},
+    {n:'ibis Bangkok Riverside', lat:13.7060, lng:100.4940, meta:'Риверсайд · у реки, бассейн, шаттл к BTS Saphan Taksin', price:'~4 500 ₽'},
+   ]},
+  ]
+},
+{
+  id:'bkk-sights', title:'Бангкок: что смотреть, где сидеть, куда за аттракционами', color:'var(--bkk-sight)', hex:'#B83A6C',
+  lead:'Времени мало, поэтому объекты сгруппированы по кластерам: храмовый день на острове Раттанакосин (всё в пешей доступности + паром), вечерний Бангкок с руфтопами и рынками, и парки аттракционов — они далеко, на них уходит целый день.',
+  groups:[
+   {name:'Кластер А · остров Раттанакосин — храмы (полдня)', items:[
+    {n:'Большой дворец и Ват Пхра Кео', lat:13.7500, lng:100.4913, meta:'08:30–15:30 · 500 бат (+200 аудиогид на русском) · строгий дресс-код: закрытые плечи и колени. Приходить к открытию'},
+    {n:'Ват Пхо (Лежащий Будда)', lat:13.7466, lng:100.4927, meta:'08:00–18:30 · 200 бат (включена вода) · 10 мин пешком от дворца, родина тайского массажа'},
+    {n:'Ват Арун (Храм Утренней зари)', lat:13.7437, lng:100.4888, meta:'08:00–18:00 · 100 бат · через реку от Ват Пхо, паром-переправа за несколько бат'},
+    {n:'Ват Сакет (Золотая гора)', lat:13.7538, lng:100.5066, meta:'07:00–19:00 · ~50 бат · панорама старого города'},
+    {n:'Чайнатаун (Яоварат)', lat:13.7397, lng:100.5100, meta:'Вечером — лучшая уличная еда города. Удобно после храмов'},
+    {n:'Khao San Road', lat:13.7590, lng:100.4975, meta:'Бэкпекерский движ, бары до утра. Рядом с храмовым кластером'},
+   ]},
+   {name:'Кластер Б · вечер, виды, рынки', items:[
+    {n:'King Power Mahanakhon SkyWalk / Sky Beach', lat:13.7235, lng:100.5290, meta:'Силом, BTS Chong Nonsi · 78-й этаж (~314 м), самая высокая смотровая и руфтоп-бар Бангкока'},
+    {n:'ICONSIAM', lat:13.7267, lng:100.5100, meta:'Набережная, зап. берег · торговый комплекс, фонтаны, фудкорт SookSiam. Бесплатный катер от Saphan Taksin'},
+    {n:'Jodd Fairs (Rama IX)', lat:13.7576, lng:100.5680, meta:'MRT Phra Ram 9 · модный ночной рынок: еда и бары. Замена Chatuchak в будни'},
+    {n:'Chatuchak Weekend Market', lat:13.7999, lng:100.5502, meta:'Только сб–вс · BTS Mo Chit / MRT Chatuchak · гигантский рынок'},
+    {n:'Дом Джима Томпсона', lat:13.7493, lng:100.5283, meta:'BTS National Stadium · тиковый дом-музей, тайский шёлк'},
+   ]},
+   {name:'Бары', items:[
+    {n:'Sky Bar at lebua', lat:13.7216, lng:100.5165, meta:'63–64-й эт., Силом · культовый из «Мальчишника», вид на реку · дресс-код: брюки и закрытая обувь, коктейли ~1500 бат'},
+    {n:'Vertigo & Moon Bar (Banyan Tree)', lat:13.7238, lng:100.5395, meta:'61-й эт., Сатхорн · открытая площадка без стекла, лучший закат'},
+    {n:'Octave (Marriott Thonglor)', lat:13.7302, lng:100.5799, meta:'49-й эт., Тонгло · 360° панорама'},
+    {n:'Tichuca', lat:13.7286, lng:100.5665, meta:'46-й эт., Сукхумвит 40 · модный «urban jungle», молодёжная тусовка'},
+    {n:'BKK Social Club (Four Seasons)', lat:13.7180, lng:100.5170, meta:'Риверсайд · один из лучших коктейльных баров Азии'},
+    {n:'Tropic City', lat:13.7245, lng:100.5130, meta:'Чароен Крунг · тропические коктейли, камерно'},
+    {n:'Sukhumvit Soi 11', lat:13.7430, lng:100.5560, meta:'Улица баров и клубов, недалеко от BTS Nana'},
+    {n:'Thonglor (Sukhumvit 55)', lat:13.7330, lng:100.5800, meta:'Хипстерский район: крафт, коктейли, изакаи'},
+   ]},
+   {name:'Парки аттракционов', items:[
+    {n:'Siam Amazing Park (Siam Park City)', lat:13.8067, lng:100.6907, meta:'10:00–18:00 · ~900–1000 бат (онлайн дешевле, часто с трансфером) · крупнейший парк + аквапарк, рекордный волновой бассейн · ~45–60 мин от центра, такси ~400 бат'},
+    {n:'Dream World', lat:14.0490, lng:100.6887, meta:'10:00–17:00 · ~590 бат · Snow Town · ~40 км от центра'},
+    {n:'Sea Life Bangkok Ocean World (Siam Paragon)', lat:13.7462, lng:100.5347, meta:'BTS Siam · крытый океанариум в центре — вариант, если нет целого дня на парк'},
+   ]},
+  ]
+},
+{
+  id:'hkt-hotels', title:'Отели Пхукета — Карон, Ката, Ката Ной', color:'var(--hkt-hotel)', hex:'#0F7C86',
+  lead:'Либо большой отель с инфраструктурой, либо вилла с бассейном. Лучший баланс цена/качество у пляжа Карон — Thavorn Palm Beach, Centara Grand (первая линия + аквапарк) и Pullman Arcadia (5 бассейнов). За пул-виллой — The Shore at Katathani на Ката Ной. Октябрь — низкий сезон, цены минимальные за год. За ночь на двоих.',
+  groups:[
+   {name:'Премиум и люкс', items:[
+    {n:'The Shore at Katathani (пул-виллы, 12+)', lat:7.8070, lng:98.2960, meta:'Над Ката Ной, шаги до пляжа · приватный бассейн и вид на море в каждой вилле · крутой склон, только взрослые', price:'~23 800–41 400 ₽'},
+    {n:'Katathani Phuket Beach Resort', lat:7.8085, lng:98.2950, meta:'На пляже Ката Ной · 9 бассейнов, 6 ресторанов · далеко от ночной жизни', price:'~12 400–17 550 ₽'},
+    {n:'Le Méridien Phuket Beach Resort', lat:7.8720, lng:98.2900, meta:'Карон Ной / Relax Bay · собственная бухта, лагунные бассейны · до Карона нужен трансфер', price:'~13 000–17 500 ₽'},
+    {n:'Centara Grand Beach Resort Phuket', lat:7.8480, lng:98.2925, meta:'Первая линия Карона · аквапарк с ленивой рекой, для семей · многолюдно, часть номеров устарела', price:'~8 400–13 200 ₽'},
+    {n:'Paradox Resort Phuket (ex-Mövenpick Karon)', lat:7.8570, lng:98.2985, meta:'6 мин до пляжа · большие бассейны, виллы, отличные завтраки', price:'~8 900–11 500 ₽'},
+    {n:'Pullman Phuket Arcadia Karon (ex-Hilton Arcadia)', lat:7.8600, lng:98.2960, meta:'~0,9 км до пляжа · 5 бассейнов, парк, лагуны, теннис · огромная территория через дорогу от пляжа', price:'~7 600–10 800 ₽'},
+   ]},
+   {name:'Средний', items:[
+    {n:'Beyond Resort Karon', lat:7.8310, lng:98.2960, meta:'Юг Карона, <10 мин до пляжа · тихий, для пар · мало инфраструктуры', price:'~10 800–16 000 ₽'},
+    {n:'Mandarava Resort & Spa Karon', lat:7.8330, lng:98.3010, meta:'На холме, 700 м до пляжа (шаттл) · рейтинг 9.0+, виллы, 5 бассейнов, спа', price:'~6 300–10 000 ₽'},
+    {n:'Thavorn Palm Beach Resort', lat:7.8440, lng:98.2950, meta:'На пляже Карон · огромные сады, 4 бассейна, лучшее value · ретро-декор в части корпусов', price:'~7 000–8 500 ₽'},
+    {n:'Novotel Phuket Karon Beach Resort & Spa', lat:7.8395, lng:98.2960, meta:'Пара минут до пляжа · недорогой Novotel с бассейном и спа', price:'от ~2 250–8 100 ₽'},
+   ]},
+   {name:'Бюджет', items:[
+    {n:'Sugar Marina Resort – ART – Karon', lat:7.8425, lng:98.2985, meta:'3 мин до пляжа · бассейн, маленькие номера', price:'~4 200 ₽'},
+    {n:'JonoX Phuket Karon', lat:7.8410, lng:98.2990, meta:'4 мин до пляжа · современный, базовые удобства', price:'~4 770 ₽'},
+   ]},
+  ]
+},
+{
+  id:'hkt-fun', title:'Пхукет: экскурсии, дайвинг, серфинг, заведения и маршруты на байке', color:'var(--hkt-fun)', hex:'#D6801F',
+  lead:'База — Карон, так что южная половина острова (Ката, Най Харн, Промтеп, Раваи) в получасе на байке. Морские экскурсии — на вторую неделю, когда муссон стихает. Аренда скутера 200–350 бат/день, скидка при аренде на 10+ дней; шлем обязателен (штраф 500 бат), движение левостороннее.',
+  groups:[
+   {name:'Море и экскурсии', items:[
+    {n:'Острова Пхи-Пхи', lat:7.7407, lng:98.7784, meta:'Спидбот + снорклинг · ~1500–2500 бат групповая · весь октябрь'},
+    {n:'Залив Пханг-Нга · остров Джеймса Бонда', lat:8.2745, lng:98.5010, meta:'Каякинг по пещерам · 1300–2200 бат, с русским гидом от ~70 $'},
+    {n:'Симиланские острова', lat:8.6550, lng:97.6450, meta:'Парк открыт 15 окт – 15 мая · лимит 3850 чел/день, e-ticket через QueQ, сбор 500 бат · планировать на 15–17 октября'},
+    {n:'Остров Рача Яй', lat:7.6050, lng:98.3650, meta:'Снорклинг и дайвинг · доступен весь октябрь, видимость до 30 м'},
+    {n:'Корал айленд (Ко Хе)', lat:7.7450, lng:98.3720, meta:'Ближайший остров — 15 мин на спидботе от Чалонга, снорклинг'},
+    {n:'Большой Будда', lat:7.8276, lng:98.3127, meta:'45 м, вид на весь юг острова · бесплатно · дресс-код'},
+    {n:'Wat Chalong', lat:7.8460, lng:98.3378, meta:'Главный храм острова · бесплатно · удобно совместить с Большим Буддой'},
+    {n:'Старый город Пхукета', lat:7.8843, lng:98.3873, meta:'Сино-португальские дома, стрит-арт, кафе · воскресный рынок Sunday Walking Street на ул. Тхаланг'},
+   ]},
+   {name:'Слоны и шоу', items:[
+    {n:'Phuket Elephant Sanctuary (Паклок)', lat:8.0510, lng:98.3810, meta:'Этичный заповедник без катаний · от ~700 бат'},
+    {n:'Phuket FantaSea', lat:7.9560, lng:98.2840, meta:'Камала · вт/пт/вс · шоу 70 мин + буфет · от ~1313 бат, с трансфером ~2020 бат'},
+    {n:'Carnival Magic', lat:7.9520, lng:98.2830, meta:'Камала · световой парад «Kingdom of Lights» · ~1520–2500 бат · дни работы сезонные'},
+   ]},
+   {name:'Дайвинг', items:[
+    {n:'Дайв-сайты Рача Яй / Рача Ной', lat:7.5000, lng:98.3300, meta:'2 дайва ~3500–4000 бат, 3 дайва ~3800–4900 бат · пробное погружение ~1900–2500 бат · Open Water ~13 500–16 200 бат'},
+    {n:'King Cruiser · Shark Point · Koh Doc Mai', lat:7.8100, lng:98.6300, meta:'Затонувший паром + рифы, 3 погружения ~3800–3900 бат · трансфер из Карона включён'},
+   ]},
+   {name:'Серфинг (конец сезона)', items:[
+    {n:'Пляж Ката — серф-школы', lat:7.8200, lng:98.2980, meta:'Для всех уровней · доска 150–300 бат/час, урок ~1000 бат/час · смотрите прогноз на Windguru'},
+    {n:'Surf House Phuket (Ката)', lat:7.8180, lng:98.2985, meta:'Искусственная волна круглый год · 1 ч 800 бат, 3 ч 2000 бат'},
+    {n:'Пляж Калим', lat:7.9060, lng:98.2860, meta:'Для опытных: правые волны до 3 м'},
+    {n:'Пляж Сурин', lat:7.9750, lng:98.2790, meta:'Серф + пляжные клубы рядом'},
+   ]},
+   {name:'Аквапарки', items:[
+    {n:'Andamanda Phuket', lat:7.9080, lng:98.3560, meta:'Кату · 10:00–18:00 · онлайн ~1350–1600 бат, на кассе ~1800–2000 · 5 зон, 30+ горок · спасение в дождливый день'},
+    {n:'Splash Jungle', lat:8.1130, lng:98.3050, meta:'Май Кхао, север · альтернатива'},
+    {n:'Blue Tree Phuket', lat:7.9950, lng:98.3060, meta:'Чернг Талай · лагуна и горки, вечером фудкорт'},
+   ]},
+   {name:'Заведения и ночная жизнь', items:[
+    {n:'Bangla Road (Патонг)', lat:7.8940, lng:98.2960, meta:'Эпицентр ночной жизни · шумно, туристический ценник · на один вечер ради атмосферы'},
+    {n:'Café del Mar Kamala', lat:7.9470, lng:98.2810, meta:'Пляжный клуб на закате, вечеринки'},
+    {n:'Catch Beach Club (Бангтао)', lat:7.9900, lng:98.2930, meta:'Пляжный клуб · рядом Coco Beach Club'},
+    {n:'Рестораны Ката Ной — закат', lat:7.8110, lng:98.2960, meta:'Тихий пляж, ужин с видом на воду'},
+    {n:'Морепродукты на Karon Road', lat:7.8470, lng:98.2960, meta:'Рыбные рестораны вдоль пляжа'},
+   ]},
+   {name:'На байке · пляжи', items:[
+    {n:'Nai Harn', lat:7.7750, lng:98.3040, meta:'Лучший пляж юга, 25 мин от Карона'},
+    {n:'Ya Nui', lat:7.7660, lng:98.3020, meta:'Маленькая бухта под Промтепом, снорклинг'},
+    {n:'Ao Sane', lat:7.7770, lng:98.2960, meta:'Каменистый, дикий, за Nai Harn'},
+    {n:'Freedom Beach', lat:7.8790, lng:98.2810, meta:'Спуск по крутой тропе, белый песок'},
+    {n:'Laem Singh', lat:7.9660, lng:98.2760, meta:'Между Камалой и Сурином, доступ по тропе'},
+    {n:'Banana Beach', lat:8.0490, lng:98.2790, meta:'Скрытый пляж под Найтоном'},
+    {n:'Nai Thon', lat:8.0560, lng:98.2770, meta:'Спокойный, малолюдный'},
+    {n:'Mai Khao', lat:8.1500, lng:98.3000, meta:'11 км пустого пляжа у аэропорта, «самолёты над головой»'},
+   ]},
+   {name:'На байке · смотровые и природа', items:[
+    {n:'Karon Viewpoint (Kata–Karon)', lat:7.8170, lng:98.3050, meta:'Три бухты в одном кадре, 10 мин от отеля'},
+    {n:'Мыс Промтеп', lat:7.7590, lng:98.3050, meta:'Главный закат острова'},
+    {n:'Windmill Viewpoint', lat:7.7660, lng:98.3050, meta:'Вид на Nai Harn и Ya Nui'},
+    {n:'Black Rock Viewpoint', lat:7.7780, lng:98.2920, meta:'Грунтовка от Ao Sane, дикий вид на юго-запад'},
+    {n:'Monkey Hill (Пхукет-таун)', lat:7.9000, lng:98.3960, meta:'Обезьяны и вид на город'},
+    {n:'Khao Phra Thaeo · водопад Bang Pae', lat:8.0400, lng:98.3900, meta:'Дождевой лес, гиббоны, водопад · в дождь полноводный'},
+    {n:'Sirinat National Park', lat:8.1100, lng:98.3000, meta:'Мангры и пляжи на северо-западе'},
+   ]},
+  ]
+}];
+
+/* ---------- photos: Wikipedia article image, else nearest Wikimedia Commons photo ---------- */
+const WIKI = {
+  'Sofitel Bangkok Sukhumvit':'Sofitel Bangkok Sukhumvit', 'Centara Grand at CentralWorld':'CentralWorld',
+  'lebua at State Tower':'State Tower', 'Shangri-La Bangkok':'Shangri-La Hotel Bangkok', 'Millennium Hilton Bangkok':'Millennium Hilton Bangkok',
+  'Большой дворец и Ват Пхра Кео':'Grand Palace', 'Ват Пхо (Лежащий Будда)':'Wat Pho', 'Ват Арун (Храм Утренней зари)':'Wat Arun',
+  'Ват Сакет (Золотая гора)':'Wat Saket', 'Чайнатаун (Яоварат)':'Yaowarat Road', 'Khao San Road':'Khaosan Road',
+  'King Power Mahanakhon SkyWalk / Sky Beach':'King Power Mahanakhon', 'ICONSIAM':'Iconsiam', 'Chatuchak Weekend Market':'Chatuchak Weekend Market',
+  'Дом Джима Томпсона':'Jim Thompson House', 'Sky Bar at lebua':'State Tower', 'Vertigo & Moon Bar (Banyan Tree)':'Banyan Tree Bangkok',
+  'Sukhumvit Soi 11':'Sukhumvit Road', 'Thonglor (Sukhumvit 55)':'Thong Lo', 'Siam Amazing Park (Siam Park City)':'Siam Amazing Park',
+  'Dream World':'Dream World (amusement park)', 'Sea Life Bangkok Ocean World (Siam Paragon)':'Sea Life Bangkok Ocean World',
+  'Острова Пхи-Пхи':'Phi Phi Islands', 'Залив Пханг-Нга · остров Джеймса Бонда':'Khao Phing Kan', 'Симиланские острова':'Similan Islands',
+  'Остров Рача Яй':'Ko Racha Yai', 'Корал айленд (Ко Хе)':'Ko Hae', 'Большой Будда':'Big Buddha (Phuket)', 'Wat Chalong':'Wat Chalong',
+  'Старый город Пхукета':'Phuket Old Town', 'Phuket FantaSea':'Phuket FantaSea', 'Дайв-сайты Рача Яй / Рача Ной':'Ko Racha Noi',
+  'Пляж Ката — серф-школы':'Kata Beach', 'Surf House Phuket (Ката)':'Kata Beach', 'Пляж Калим':'Patong', 'Пляж Сурин':'Surin Beach',
+  'Bangla Road (Патонг)':'Bangla Road', 'Nai Harn':'Nai Harn Beach', 'Mai Khao':'Mai Khao Beach', 'Мыс Промтеп':'Promthep Cape',
+  'Sirinat National Park':'Sirinat National Park', 'Khao Phra Thaeo · водопад Bang Pae':'Khao Phra Thaeo National Park',
+  'Пляж Карон':'Karon Beach', 'Морепродукты на Karon Road':'Karon Beach'
+};
+const imgCache = new Map();
+async function fetchImage(p){
+  const key = p.n; if (imgCache.has(key)) return imgCache.get(key);
+  const job = (async () => {
+    const title = WIKI[p.n];
+    if (title) {
+      try {
+        const r = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
+        if (r.ok) { const j = await r.json(); const u = j.thumbnail?.source; if (u) return u.replace(/\/\d+px-/, '/480px-'); }
+      } catch(e){}
+    }
+    try { /* nearest Commons photos within 400 m */
+      const q = `https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=geosearch&ggscoord=${p.lat}|${p.lng}&ggsradius=400&ggsnamespace=6&ggslimit=8&prop=imageinfo&iiprop=url|mime&iiurlwidth=480`;
+      const r = await fetch(q); const j = await r.json();
+      const pages = Object.values(j.query?.pages || {}).filter(x => /image\/(jpeg|png|webp)/.test(x.imageinfo?.[0]?.mime||''));
+      if (pages.length) return pages[0].imageinfo[0].thumburl;
+    } catch(e){}
+    return null;
+  })();
+  imgCache.set(key, job); return job;
+}
+function attachImage(p){
+  const box = p.el.querySelector('.thumb'), img = box.querySelector('img');
+  fetchImage(p).then(u => {
+    if (!u) { box.classList.add('none'); return; }
+    img.onload = () => img.classList.add('ok'); img.onerror = () => box.classList.add('none');
+    img.src = u; p.img = u;
+    p.marker.setPopupContent(popupHtml(p));
+  });
+}
+const popupHtml = p => `${p.img ? `<img class="popimg" src="${p.img}" alt="">` : ''}<b>${p.i}. ${p.n}</b><br>${p.meta}${p.price ? '<br>'+p.price : ''}<br><span class="links">${p.links}</span>`;
+
+/* ---------- render ---------- */
+const app = document.getElementById('app');
+const gmLink = p => `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
+const bookingLink = (p, stay) => `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(p.n.replace(/\s*\(.*?\)/g,'') + ' ' + stay.city)}&checkin=${stay.in}&checkout=${stay.out}&group_adults=2&no_rooms=1&group_children=0`;
+const taLink = (p, city) => `https://www.tripadvisor.com/Search?q=${encodeURIComponent(p.n.replace(/\s*\(.*?\)/g,'') + ' ' + city)}`;
+const STAY = { 'bkk-hotels':{city:'Bangkok', in:'2026-10-05', out:'2026-10-08'}, 'hkt-hotels':{city:'Phuket', in:'2026-10-08', out:'2026-10-17'} };
+const CITY = { 'bkk-sights':'Bangkok', 'hkt-fun':'Phuket' };
+const RATED_GROUPS = ['Бары','Заведения и ночная жизнь'];
+function extraLinks(p, block, group){
+  const out = [];
+  if (STAY[block.id]) out.push(`<a class="gm" href="${bookingLink(p, STAY[block.id])}" target="_blank" rel="noopener">Booking.com</a>`);
+  if (RATED_GROUPS.includes(group.name)) out.push(`<a class="gm" href="${taLink(p, CITY[block.id])}" target="_blank" rel="noopener">Tripadvisor</a>`);
+  out.push(`<a class="gm" href="${gmLink(p)}" target="_blank" rel="noopener">Google Maps</a>`);
+  return out.join('<span class="sep">·</span>');
+}
+
+BLOCKS.forEach(block => {
+  const all = block.groups.flatMap(g => g.items);
+  const sec = document.createElement('section');
+  sec.className = 'block'; sec.id = block.id;
+  sec.innerHTML = `
+    <div class="wrap">
+      <div class="block-head"><h2>${block.title}</h2><span class="count">${all.length} точек на карте</span></div>
+      <p class="lead">${block.lead}</p>
+      <div class="layout">
+        <div class="list"></div>
+        <div class="mapbox"><div class="map" id="map-${block.id}"></div></div>
+      </div>
+    </div>`;
+  app.appendChild(sec);
+
+  const list = sec.querySelector('.list');
+  let idx = 0;
+  block.groups.forEach(g => {
+    const gd = document.createElement('div'); gd.className = 'group';
+    gd.innerHTML = `<h3>${g.name}</h3>`;
+    g.items.forEach(p => {
+      p.i = ++idx;
+      const el = document.createElement('div');
+      el.className = 'place'; el.tabIndex = 0; el.dataset.i = p.i;
+      el.innerHTML = `<div class="num" style="background:${block.hex}">${p.i}</div>
+        <div class="thumb"><img alt="" loading="lazy"></div>
+        <div><div class="name">${p.n}</div><div class="meta">${p.meta}</div>
+        ${p.price ? `<div class="price">${p.price}</div>` : ''}
+        <div class="links">${extraLinks(p, block, g)}</div></div>`;
+      gd.appendChild(el);
+      p.el = el; p.links = extraLinks(p, block, g);
+    });
+    list.appendChild(gd);
+  });
+
+  /* map */
+  const map = L.map(`map-${block.id}`, {scrollWheelZoom:false});
+  const layers = {
+    'Google': L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {subdomains:['mt0','mt1','mt2','mt3'], maxZoom:20, attribution:'Map data © Google'}),
+    'Спутник': L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {subdomains:['mt0','mt1','mt2','mt3'], maxZoom:20, attribution:'Imagery © Google'}),
+    'OSM': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'})
+  };
+  layers['Google'].addTo(map);
+
+  const sw = document.createElement('div'); sw.className = 'basemap';
+  Object.keys(layers).forEach((k,i) => {
+    const b = document.createElement('button'); b.textContent = k; if(i===0) b.classList.add('on');
+    b.onclick = () => { Object.values(layers).forEach(l => map.removeLayer(l)); layers[k].addTo(map);
+      sw.querySelectorAll('button').forEach(x => x.classList.remove('on')); b.classList.add('on'); };
+    sw.appendChild(b);
+  });
+  sec.querySelector('.mapbox').appendChild(sw);
+
+  const markers = [];
+  all.forEach(p => {
+    const icon = L.divIcon({className:'', html:`<div class="pin" style="background:${block.hex}"><span>${p.i}</span></div>`, iconSize:[28,28], iconAnchor:[14,28], popupAnchor:[0,-26]});
+    const m = L.marker([p.lat,p.lng], {icon, title:p.n}).addTo(map)
+      .bindPopup(() => popupHtml(p), {maxWidth:280});
+    m.on('click', () => setActive(p));
+    p.marker = m; markers.push(m);
+  });
+  /* load photos lazily, when the block scrolls into view */
+  const imgObs = new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return;
+    const p = all.find(x => x.el === e.target); if (p && !p.imgStarted) { p.imgStarted = true; attachImage(p); }
+  }), {rootMargin:'300px'});
+  all.forEach(p => imgObs.observe(p.el));
+  map.fitBounds(L.featureGroup(markers).getBounds().pad(0.08));
+
+  function setActive(p){
+    all.forEach(x => x.el.classList.toggle('active', x === p));
+  }
+  all.forEach(p => {
+    const go = () => { setActive(p); map.flyTo([p.lat,p.lng], Math.max(map.getZoom(), 14), {duration:.6}); p.marker.openPopup(); };
+    p.el.addEventListener('click', e => { if (e.target.tagName !== 'A') go(); });
+    p.el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+  });
+  /* re-measure when section enters view (sticky map may be laid out hidden) */
+  new IntersectionObserver(es => es.forEach(e => e.isIntersecting && map.invalidateSize()), {threshold:.05}).observe(sec);
+});
+</script>
+</body>
+</html>
