@@ -329,7 +329,8 @@ async function fetchImage(p){
     if (title) {
       try {
         const r = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
-        if (r.ok) { const j = await r.json(); const u = j.thumbnail?.source; if (u) return u.replace(/\/\d+px-/, '/480px-'); }
+        if (r.ok) { const j = await r.json(); const t = j.thumbnail?.source, o = j.originalimage;
+          if (t) { const w = Math.min(480, o?.width || 480); return (w >= (o?.width||1e9)) ? o.source : t.replace(/\/\d+px-/, `/${w}px-`).split('?')[0]; } }
       } catch(e){}
     }
     try { /* nearest Commons photos within 400 m */
