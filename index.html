@@ -63,6 +63,10 @@
   .place .price{font-size:14px;color:var(--ink);margin-top:2px}
   .place .gm{font-size:13px;display:inline-block}
   .links{margin-top:4px;font-size:13px}
+  .stars{color:#D9A400;font-size:12px;letter-spacing:1px;margin-left:8px;vertical-align:1px}
+  .ta{display:inline-block;margin-left:8px;padding:1px 7px;border-radius:10px;background:#E8F4EC;color:#1F5F3A;font-size:12px;font-weight:500;text-decoration:none;vertical-align:1px}
+  .ta span{font-weight:400;color:#4A7A5C}
+  .ta:hover{background:#D4EBDB}
   .sep{color:var(--line);margin:0 6px}
   .place{grid-template-columns:34px 84px 1fr}
   .thumb{width:84px;height:64px;border-radius:6px;background:var(--line);overflow:hidden;position:relative}
@@ -152,7 +156,7 @@
   </div>
 </section>
 
-<footer><div class="wrap">Карты: Leaflet · подложки Google Maps / OpenStreetMap. Ссылки Booking.com открывают отель с датами 5–8 октября (Бангкок) и 8–17 октября (Пхукет) на двоих; Tripadvisor — рейтинг и отзывы заведения; Google Maps — точка с маршрутом.</div></footer>
+<footer><div class="wrap">Карты: Leaflet · подложки Google Maps / OpenStreetMap. Ссылки Booking.com открывают отель с датами 5–8 октября (Бангкок) и 8–17 октября (Пхукет) на двоих; Tripadvisor — рейтинг и отзывы заведения (зелёная плашка — оценка Tripadvisor на сентябрь 2026); Google Maps — точка с маршрутом.</div></footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
@@ -350,7 +354,24 @@ function attachImage(p){
     p.marker.setPopupContent(popupHtml(p));
   });
 }
-const popupHtml = p => `${p.img ? `<img class="popimg" src="${p.img}" alt="">` : ''}<b>${p.i}. ${p.n}</b><br>${p.meta}${p.price ? '<br>'+p.price : ''}<br><span class="links">${p.links}</span>`;
+const popupHtml = p => `${p.img ? `<img class="popimg" src="${p.img}" alt="">` : ''}<b>${p.i}. ${p.n}</b>${starsHtml(STARS[p.n])}${TA[p.n] ? ` <span class="ta">${TA[p.n][0].toFixed(1)} · ${fmt(TA[p.n][1])}</span>` : ''}<br>${p.meta}${p.price ? '<br>'+p.price : ''}<br><span class="links">${p.links}</span>`;
+
+/* ---------- hotel stars & Tripadvisor ratings (checked Sept 2026) ---------- */
+const STARS = {
+  'Sofitel Bangkok Sukhumvit':5,'Centara Grand at CentralWorld':5,'lebua at State Tower':5,'Shangri-La Bangkok':5,'Millennium Hilton Bangkok':5,
+  'Eastin Grand Hotel Sathorn':5,'Novotel Bangkok Sukhumvit 20':4,'Citichic Sukhumvit 13':3,'ibis Styles Bangkok Silom':3,'ibis Bangkok Riverside':3,
+  'The Shore at Katathani (пул-виллы, 12+)':5,'Katathani Phuket Beach Resort':5,'Le Méridien Phuket Beach Resort':5,'Centara Grand Beach Resort Phuket':5,
+  'Paradox Resort Phuket (ex-Mövenpick Karon)':5,'Pullman Phuket Arcadia Karon (ex-Hilton Arcadia)':5,'Beyond Resort Karon':4,'Mandarava Resort & Spa Karon':4,
+  'Thavorn Palm Beach Resort':4,'Novotel Phuket Karon Beach Resort & Spa':4,'Sugar Marina Resort – ART – Karon':3,'JonoX Phuket Karon':3
+};
+const TA = {
+  'Sky Bar at lebua':[3.7,4918],'Vertigo & Moon Bar (Banyan Tree)':[4.2,6605],'Octave (Marriott Thonglor)':[4.6,3981],'Tichuca':[3.1,119],
+  'BKK Social Club (Four Seasons)':[4.9,45],'Tropic City':[4.8,20],'King Power Mahanakhon SkyWalk / Sky Beach':[4.5,1167],
+  'Bangla Road (Патонг)':[3.8,21112],'Café del Mar Kamala':[3.8,815],'Catch Beach Club (Бангтао)':[4.1,1623]
+};
+const fmt = n => n.toLocaleString('ru-RU');
+const starsHtml = n => n ? `<span class="stars" title="${n} звёзд">${'★'.repeat(n)}</span>` : '';
+const taHtml = (p, city) => TA[p.n] ? `<a class="ta" href="${taLink(p, city)}" target="_blank" rel="noopener" title="Рейтинг Tripadvisor">${TA[p.n][0].toFixed(1)} <span>· ${fmt(TA[p.n][1])} отзывов</span></a>` : '';
 
 /* ---------- render ---------- */
 const app = document.getElementById('app');
@@ -394,7 +415,7 @@ BLOCKS.forEach(block => {
       el.className = 'place'; el.tabIndex = 0; el.dataset.i = p.i;
       el.innerHTML = `<div class="num" style="background:${block.hex}">${p.i}</div>
         <div class="thumb"><img alt="" loading="lazy"></div>
-        <div><div class="name">${p.n}</div><div class="meta">${p.meta}</div>
+        <div><div class="name">${p.n}${starsHtml(STARS[p.n])}${taHtml(p, CITY[block.id])}</div><div class="meta">${p.meta}</div>
         ${p.price ? `<div class="price">${p.price}</div>` : ''}
         <div class="links">${extraLinks(p, block, g)}</div></div>`;
       gd.appendChild(el);
