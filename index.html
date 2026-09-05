@@ -46,8 +46,16 @@
   .block-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:8px}
   .block-head .count{color:var(--ink-soft);font-size:15px}
   .lead{max-width:72ch;color:var(--ink-soft);margin-bottom:22px}
-  .layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:24px;align-items:start}
-  @media (max-width:900px){.layout{grid-template-columns:1fr}.mapbox{position:static!important;height:380px!important}}
+  .layout{display:grid;grid-template-columns:minmax(0,1fr) 28px minmax(0,1.1fr);gap:0 10px;align-items:start;transition:grid-template-columns .35s ease}
+  .layout.collapsed{grid-template-columns:0 28px minmax(0,1fr)}
+  .layout.collapsed .list{visibility:hidden;overflow:hidden}
+  .handle{position:sticky;top:64px;height:calc(100vh - 90px);min-height:420px;display:flex;align-items:center;justify-content:center}
+  .handle button{width:28px;height:56px;border:1px solid var(--line);border-radius:8px;background:var(--panel);cursor:pointer;display:grid;place-items:center;color:var(--ink-soft);padding:0;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .handle button:hover{background:var(--bg);color:var(--ink)}
+  .handle button:focus-visible{outline:2px solid var(--sea)}
+  .handle svg{width:16px;height:16px;transition:transform .3s}
+  .layout.collapsed .handle svg{transform:rotate(180deg)}
+  @media (max-width:900px){.layout,.layout.collapsed{grid-template-columns:1fr}.handle{display:none}.layout.collapsed .list{visibility:visible}.mapbox{position:static!important;height:380px!important}}
   .mapbox{position:sticky;top:64px;height:calc(100vh - 90px);min-height:420px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#E6EEF0}
   .map{width:100%;height:100%}
 
@@ -399,6 +407,7 @@ BLOCKS.forEach(block => {
       <p class="lead">${block.lead}</p>
       <div class="layout">
         <div class="list"></div>
+        <div class="handle"><button type="button" aria-label="Свернуть список" aria-expanded="true" title="Свернуть список"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button></div>
         <div class="mapbox"><div class="map" id="map-${block.id}"></div></div>
       </div>
     </div>`;
@@ -465,6 +474,16 @@ BLOCKS.forEach(block => {
     const go = () => { setActive(p); map.flyTo([p.lat,p.lng], Math.max(map.getZoom(), 14), {duration:.6}); p.marker.openPopup(); };
     p.el.addEventListener('click', e => { if (e.target.tagName !== 'A') go(); });
     p.el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+  });
+  /* collapse/expand list */
+  const layout = sec.querySelector('.layout'), tbtn = sec.querySelector('.handle button');
+  tbtn.addEventListener('click', () => {
+    const c = layout.classList.toggle('collapsed');
+    tbtn.setAttribute('aria-expanded', String(!c));
+    const label = c ? 'Показать список' : 'Свернуть список';
+    tbtn.title = label; tbtn.setAttribute('aria-label', label);
+    layout.addEventListener('transitionend', () => map.invalidateSize(), {once:true});
+    setTimeout(() => map.invalidateSize(), 400);
   });
   /* re-measure when section enters view (sticky map may be laid out hidden) */
   new IntersectionObserver(es => es.forEach(e => e.isIntersecting && map.invalidateSize()), {threshold:.05}).observe(sec);
